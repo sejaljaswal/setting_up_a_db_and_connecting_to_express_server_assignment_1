@@ -1,37 +1,39 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const { resolve } = require('path');
 
-// Load Environment Variables from .env File
+// Load environment variables
 dotenv.config();
 
-// Initialize Express App
+console.log("🔍 MongoDB URI from .env:", process.env.MONGO_URI); // Debugging log
+
 const app = express();
+const port = 5005;
 
-// Define the Port from Environment Variables or Default to 5000
-const PORT = process.env.PORT || 5000;
+// MongoDB connection setup
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ Connected to database');
+  } catch (error) {
+    console.error(`❌ Error connecting to database: ${error.message}`);
+    process.exit(1); // Exit process if database connection fails
+  }
+};
 
-// MongoDB Connection URI from Environment Variables
-const mongoURI = process.env.MONGO_URI;
+// Call the function to connect to MongoDB
+connectDB();
 
-// Connect to MongoDB using Mongoose
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log('Connected to database');
-})
-.catch((error) => {
-  console.error('Error connecting to database:', error.message);
-});
+// Serve static files (e.g., CSS, JS)
+app.use(express.static('static'));
 
-// Define a Simple Route for Testing
+// Route to serve HTML page
 app.get('/', (req, res) => {
-  res.send('Customer Management System Backend is Running');
+  res.sendFile(resolve(__dirname, 'pages/index.html'));
 });
 
-// Start the Express Server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Start the server
+app.listen(port, () => {
+  console.log(`🚀 Server running at http://localhost:${port}`);
 });
